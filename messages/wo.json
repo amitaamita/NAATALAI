@@ -1,0 +1,56 @@
+{
+  "commun": {
+    "nomApp": "NAATAL AI",
+    "bientot": "[WO] Bientôt disponible",
+    "avertissement": "[WO] Aide à la décision, pas un diagnostic certifié."
+  },
+  "accueil": {
+    "accroche": "[WO] Assistant agricole du Sénégal",
+    "titre": "[WO] Décrivez le problème. Un conseiller veille.",
+    "sousTitre": "[WO] Une photo, un message vocal ou quelques mots : NAATAL AI vous oriente en moins d'une minute, et un conseiller agricole prend le relais quand c'est nécessaire.",
+    "choisirLangue": "[WO] Choisissez votre langue",
+    "producteur": "[WO] Je suis producteur",
+    "producteurDetail": "[WO] Déclarer un problème sur mes cultures",
+    "pro": "[WO] Espace professionnel",
+    "proDetail": "[WO] Conseillers, experts et administration",
+    "atoutPhotoTitre": "[WO] Photo",
+    "atoutPhoto": "[WO] Montrez la feuille ou la plante touchée.",
+    "atoutVoixTitre": "[WO] Voix",
+    "atoutVoix": "[WO] Parlez en wolof ou en français.",
+    "atoutConseillerTitre": "[WO] Conseiller",
+    "atoutConseiller": "[WO] Un humain valide les cas sensibles."
+  },
+  "langues": {
+    "fr": "Français",
+    "wo": "Wolof"
+  },
+  "producteur": {
+    "titre": "[WO] Mes cultures",
+    "declarer": "[WO] Déclarer un problème",
+    "declarerDetail": "[WO] Photo, voix ou texte",
+    "mesDossiers": "[WO] Mes demandes",
+    "aucunDossier": "[WO] Aucune demande pour le moment."
+  },
+  "pro": {
+    "conseiller": "[WO] Espace conseiller",
+    "expert": "[WO] Espace expert",
+    "admin": "[WO] Administration",
+    "dossiers": "[WO] Dossiers",
+    "fiches": "[WO] Fiches",
+    "signalements": "[WO] Signalements",
+    "comptes": "[WO] Comptes",
+    "tableauDeBord": "[WO] Tableau de bord",
+    "fileVide": "[WO] Aucun dossier dans la file."
+  },
+  "statuts": {
+    "BROUILLON": "[WO] Brouillon",
+    "NOUVEAU": "[WO] Nouveau",
+    "EN_ANALYSE": "[WO] En analyse",
+    "ORIENTE": "[WO] Orienté",
+    "A_VERIFIER": "[WO] À vérifier",
+    "EN_COURS": "[WO] En cours de traitement",
+    "EN_ATTENTE_PRODUCTEUR": "[WO] En attente producteur",
+    "REPONDU": "[WO] Répondu",
+    "CLOTURE": "[WO] Clôturé"
+  }
+}

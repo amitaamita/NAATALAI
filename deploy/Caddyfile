@@ -1,0 +1,9 @@
+{$DOMAINE} {
+	encode zstd gzip
+	reverse_proxy app:3000
+}
+
+# Médias : URL signées servies sur un sous-domaine dédié (ex. medias.mondomaine.sn)
+{$DOMAINE_MEDIAS} {
+	reverse_proxy minio:9000
+}

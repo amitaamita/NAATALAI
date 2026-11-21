@@ -1,0 +1,56 @@
+{
+  "commun": {
+    "nomApp": "NAATAL AI",
+    "bientot": "Bientôt disponible",
+    "avertissement": "Aide à la décision, pas un diagnostic certifié."
+  },
+  "accueil": {
+    "accroche": "Assistant agricole du Sénégal",
+    "titre": "Décrivez le problème. Un conseiller veille.",
+    "sousTitre": "Une photo, un message vocal ou quelques mots : NAATAL AI vous oriente en moins d'une minute, et un conseiller agricole prend le relais quand c'est nécessaire.",
+    "choisirLangue": "Choisissez votre langue",
+    "producteur": "Je suis producteur",
+    "producteurDetail": "Déclarer un problème sur mes cultures",
+    "pro": "Espace professionnel",
+    "proDetail": "Conseillers, experts et administration",
+    "atoutPhotoTitre": "Photo",
+    "atoutPhoto": "Montrez la feuille ou la plante touchée.",
+    "atoutVoixTitre": "Voix",
+    "atoutVoix": "Parlez en wolof ou en français.",
+    "atoutConseillerTitre": "Conseiller",
+    "atoutConseiller": "Un humain valide les cas sensibles."
+  },
+  "langues": {
+    "fr": "Français",
+    "wo": "Wolof"
+  },
+  "producteur": {
+    "titre": "Mes cultures",
+    "declarer": "Déclarer un problème",
+    "declarerDetail": "Photo, voix ou texte",
+    "mesDossiers": "Mes demandes",
+    "aucunDossier": "Aucune demande pour le moment."
+  },
+  "pro": {
+    "conseiller": "Espace conseiller",
+    "expert": "Espace expert",
+    "admin": "Administration",
+    "dossiers": "Dossiers",
+    "fiches": "Fiches",
+    "signalements": "Signalements",
+    "comptes": "Comptes",
+    "tableauDeBord": "Tableau de bord",
+    "fileVide": "Aucun dossier dans la file."
+  },
+  "statuts": {
+    "BROUILLON": "Brouillon",
+    "NOUVEAU": "Nouveau",
+    "EN_ANALYSE": "En analyse",
+    "ORIENTE": "Orienté",
+    "A_VERIFIER": "À vérifier",
+    "EN_COURS": "En cours de traitement",
+    "EN_ATTENTE_PRODUCTEUR": "En attente producteur",
+    "REPONDU": "Répondu",
+    "CLOTURE": "Clôturé"
+  }
+}

@@ -1,0 +1,84 @@
+/*
+ * Charte NAATAL AI – inspirée des cultures sénégalaises.
+ * Toute couleur, police ou animation utilisée dans l'application vient d'ici.
+ */
+@theme {
+  /* Vert culture : identité principale, actions */
+  --color-culture-50: #eef6f0;
+  --color-culture-100: #d5eadb;
+  --color-culture-200: #a9d3b6;
+  --color-culture-400: #4f9b6b;
+  --color-culture-500: #2f7d4f;
+  --color-culture-600: #25683f;
+  --color-culture-700: #1f5c3a;
+  --color-culture-800: #17452c;
+  --color-culture-900: #10321f;
+
+  /* Or mil : accents, mise en valeur */
+  --color-mil-100: #fbf1d6;
+  --color-mil-300: #efcf7a;
+  --color-mil-400: #e3b341;
+  --color-mil-500: #c9952a;
+  --color-mil-700: #8f6517;
+
+  /* Terre ocre : sol, alertes douces */
+  --color-terre-100: #f6e3d8;
+  --color-terre-400: #cf8458;
+  --color-terre-500: #b5653a;
+  --color-terre-700: #8a4527;
+
+  /* Crème : fonds */
+  --color-creme-50: #fdfbf6;
+  --color-creme-100: #f7f1e3;
+  --color-creme-200: #ede3cc;
+
+  /* Texte */
+  --color-encre: #1b231d;
+  --color-encre-douce: #4a554d;
+
+  /* Typographie (chargée dans src/app/layout.tsx) */
+  --font-titre: var(--font-fraunces), Georgia, serif;
+  --font-texte: var(--font-inter), system-ui, sans-serif;
+
+  /* Rayons et ombres */
+  --radius-carte: 1.25rem;
+  --shadow-douce: 0 1px 2px rgb(16 50 31 / 0.06), 0 8px 24px -8px rgb(16 50 31 / 0.18);
+  --shadow-relief: 0 2px 4px rgb(16 50 31 / 0.08), 0 20px 40px -16px rgb(16 50 31 / 0.35);
+
+  /* Animations : uniquement transform et opacity (légères en 3G) */
+  --ease-naatal: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --animate-monter: monter 700ms var(--ease-naatal) both;
+  --animate-fondu: fondu 600ms var(--ease-naatal) both;
+  --animate-pousser: pousser 3.6s ease-in-out infinite;
+
+  @keyframes monter {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fondu {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Balancement léger des épis du motif décoratif */
+  @keyframes pousser {
+    0%,
+    100% {
+      transform: rotate(-1.5deg);
+    }
+    50% {
+      transform: rotate(1.5deg);
+    }
+  }
+}

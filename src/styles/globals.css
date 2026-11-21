@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-creme-50);
+    color: var(--color-encre);
+    font-family: var(--font-texte);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-titre);
+    letter-spacing: -0.01em;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-mil-400);
+    outline-offset: 2px;
+  }
+}
+
+/* Transitions entre pages (View Transitions, ignorées par les navigateurs qui ne les gèrent pas) */
+@view-transition {
+  navigation: auto;
+}
+
+/* Le téléphone demande moins d'animations : on les coupe toutes */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  @view-transition {
+    navigation: none;
+  }
+}

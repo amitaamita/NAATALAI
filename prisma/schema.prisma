@@ -1,0 +1,437 @@
+// Modèle de données NAATAL AI – d'après le cahier des charges §6.8.
+// Toute modification passe par une migration : `pnpm db:migrate --name <nom>`.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// ---------- Énumérations ----------
+
+enum Role {
+  PRODUCTEUR
+  CONSEILLER
+  EXPERT
+  ADMIN
+}
+
+enum Langue {
+  FR
+  WO
+}
+
+enum TypeConsentement {
+  PHOTOS
+  VOIX
+  LOCALISATION
+  AMELIORATION_IA // RG09
+}
+
+enum Gravite {
+  FAIBLE
+  MOYEN
+  FORT
+}
+
+// Cycle de vie d'un dossier (§6.5, RG11). Transitions : src/modules/dossiers/cycle-de-vie.ts
+enum StatutDossier {
+  BROUILLON
+  NOUVEAU
+  EN_ANALYSE
+  ORIENTE
+  A_VERIFIER
+  EN_COURS
+  EN_ATTENTE_PRODUCTEUR
+  REPONDU
+  CLOTURE
+}
+
+enum TypeMedia {
+  PHOTO
+  AUDIO
+}
+
+enum NiveauConfiance {
+  FAIBLE
+  MOYEN
+  ELEVE
+}
+
+enum StatutValidation {
+  PROPOSEE
+  VALIDEE
+  CORRIGEE
+  REJETEE
+}
+
+enum StatutFiche {
+  BROUILLON
+  EN_RELECTURE
+  PUBLIEE // seul statut utilisable par l'assistant (RG13)
+  ARCHIVEE
+}
+
+enum TypeMessage {
+  QUESTION
+  REPONSE
+  INFORMATION
+}
+
+enum StatutSignalement {
+  OUVERT
+  CONFIRME
+  REJETE
+}
+
+// ---------- Comptes ----------
+
+model Utilisateur {
+  id             String           @id @default(cuid())
+  nom            String
+  telephone      String           @unique
+  email          String?          @unique
+  role           Role             @default(PRODUCTEUR)
+  langue         Langue           @default(FR)
+  specialite     String?
+  zoneId         String?
+  zone           Zone?            @relation(fields: [zoneId], references: [id])
+  actif          Boolean          @default(true)
+  creeLe         DateTime         @default(now())
+  modifieLe      DateTime         @updatedAt
+  suppressionDemandeeLe DateTime? // EF06
+
+  consentements      Consentement[]
+  sessions           Session[]
+  exploitations      Exploitation[]
+  dossiers           Dossier[]        @relation("DossiersProducteur")
+  dossiersConseiller Dossier[]        @relation("DossiersConseiller")
+  dossiersExpert     Dossier[]        @relation("DossiersExpert")
+  recommandations    Recommandation[]
+  messages           Message[]
+  signalements       Signalement[]    @relation("SignalementsAuteur")
+  notifications      Notification[]
+}
+
+model CodeVerification {
+  id         String   @id @default(cuid())
+  telephone  String
+  codeHash   String // jamais le code en clair (§7.2)
+  expireLe   DateTime
+  tentatives Int      @default(0)
+  utiliseLe  DateTime?
+  creeLe     DateTime @default(now())
+
+  @@index([telephone])
+}
+
+model Session {
+  id            String      @id @default(cuid())
+  utilisateurId String
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  jetonHash     String      @unique
+  expireLe      DateTime
+  creeLe        DateTime    @default(now())
+
+  @@index([utilisateurId])
+}
+
+model Consentement {
+  id            String           @id @default(cuid())
+  utilisateurId String
+  utilisateur   Utilisateur      @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  type          TypeConsentement
+  accorde       Boolean
+  modifieLe     DateTime         @default(now())
+
+  @@unique([utilisateurId, type])
+}
+
+model Zone {
+  id           String        @id @default(cuid())
+  region       String
+  departement  String?
+  utilisateurs Utilisateur[]
+}
+
+// ---------- Exploitations et cultures ----------
+
+model Exploitation {
+  id           String      @id @default(cuid())
+  producteurId String
+  producteur   Utilisateur @relation(fields: [producteurId], references: [id], onDelete: Cascade)
+  nom          String
+  region       String
+  departement  String
+  commune      String
+  creeLe       DateTime    @default(now())
+  parcelles    Parcelle[]
+
+  @@index([producteurId])
+}
+
+model Parcelle {
+  id             String         @id @default(cuid())
+  exploitationId String
+  exploitation   Exploitation   @relation(fields: [exploitationId], references: [id], onDelete: Cascade)
+  nom            String
+  superficieHa   Decimal?       @db.Decimal(8, 2)
+  typeSol        String?
+  cycles         CycleCulture[]
+  dossiers       Dossier[]
+}
+
+// Référentiel des cultures du pilote (EF09)
+model Culture {
+  id       String         @id @default(cuid())
+  code     String         @unique
+  nomFr    String
+  nomWo    String
+  actif    Boolean        @default(true)
+  cycles   CycleCulture[]
+  fiches   Fiche[]
+  dossiers Dossier[]
+}
+
+model CycleCulture {
+  id                String    @id @default(cuid())
+  parcelleId        String
+  parcelle          Parcelle  @relation(fields: [parcelleId], references: [id], onDelete: Cascade)
+  cultureId         String
+  culture           Culture   @relation(fields: [cultureId], references: [id])
+  dateSemis         DateTime?
+  dateRecoltePrevue DateTime?
+  dossiers          Dossier[]
+}
+
+// ---------- Dossiers ----------
+
+model Dossier {
+  id             String        @id @default(cuid())
+  producteurId   String
+  producteur     Utilisateur   @relation("DossiersProducteur", fields: [producteurId], references: [id], onDelete: Cascade)
+  parcelleId     String // RG03
+  parcelle       Parcelle      @relation(fields: [parcelleId], references: [id])
+  cultureId      String // RG03
+  culture        Culture       @relation(fields: [cultureId], references: [id])
+  cycleId        String?
+  cycle          CycleCulture? @relation(fields: [cycleId], references: [id])
+  description    String?
+  gravite        Gravite
+  dateApparition DateTime
+  latitude       Decimal?      @db.Decimal(9, 6) // facultatif (EF15)
+  longitude      Decimal?      @db.Decimal(9, 6)
+  statut         StatutDossier @default(BROUILLON) // RG11
+  conseillerId   String?
+  conseiller     Utilisateur?  @relation("DossiersConseiller", fields: [conseillerId], references: [id])
+  expertId       String?
+  expert         Utilisateur?  @relation("DossiersExpert", fields: [expertId], references: [id])
+  creeLe         DateTime      @default(now())
+  envoyeLe       DateTime?
+  modifieLe      DateTime      @updatedAt
+
+  medias          Media[]
+  analyses        AnalyseIA[]
+  recommandations Recommandation[]
+  messages        Message[]
+  historique      HistoriqueStatut[]
+
+  @@index([producteurId])
+  @@index([conseillerId, statut])
+  @@index([statut, gravite, creeLe])
+}
+
+// Horodatage des statuts : sert aux indicateurs de délai (§10) et à RG14
+model HistoriqueStatut {
+  id        String         @id @default(cuid())
+  dossierId String
+  dossier   Dossier        @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  de        StatutDossier?
+  vers      StatutDossier
+  auteurId  String?
+  creeLe    DateTime       @default(now())
+
+  @@index([dossierId])
+}
+
+model Media {
+  id                    String    @id @default(cuid())
+  dossierId             String
+  dossier               Dossier   @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  type                  TypeMedia
+  cleStockage           String    @unique
+  typeMime              String
+  tailleOctets          Int
+  dureeSecondes         Int? // audio, 60 s max (EF13)
+  transcription         String? // EF19
+  transcriptionCorrigee String? // EF19, EF29
+  creeLe                DateTime  @default(now())
+}
+
+// ---------- IA ----------
+
+model AnalyseIA {
+  id               String          @id @default(cuid())
+  dossierId        String
+  dossier          Dossier         @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  hypotheses       Json // liste ordonnée d'hypothèses, jamais un diagnostic (RG06)
+  confiance        NiveauConfiance
+  limites          String
+  infosManquantes  String?
+  conseilsGeneraux String? // gestes à faible risque déjà validés (EF23)
+  sensible         Boolean // RG07 : déclenche l'escalade
+  motifEscalade    String?
+  modele           String // RG05
+  versionModele    String // RG05
+  suspendue        Boolean         @default(false) // RG12
+  creeLe           DateTime        @default(now())
+
+  fichesConsultees AnalyseFiche[]
+  signalements     Signalement[]
+}
+
+model AnalyseFiche {
+  analyseId     String
+  analyse       AnalyseIA    @relation(fields: [analyseId], references: [id], onDelete: Cascade)
+  ficheVersionId String
+  ficheVersion  FicheVersion @relation(fields: [ficheVersionId], references: [id])
+  score         Float?
+
+  @@id([analyseId, ficheVersionId])
+}
+
+model Recommandation {
+  id               String           @id @default(cuid())
+  dossierId        String
+  dossier          Dossier          @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  auteurId         String
+  auteur           Utilisateur      @relation(fields: [auteurId], references: [id])
+  contenu          String
+  langue           Langue
+  statutValidation StatutValidation @default(PROPOSEE)
+  commentaireRejet String? // obligatoire si REJETEE (EF34)
+  suspendue        Boolean          @default(false) // RG12
+  creeLe           DateTime         @default(now())
+  modifieLe        DateTime         @updatedAt
+
+  historique   HistoriqueRecommandation[]
+  signalements Signalement[]
+}
+
+// RG08 : toute modification d'une recommandation validée est historisée
+model HistoriqueRecommandation {
+  id               String         @id @default(cuid())
+  recommandationId String
+  recommandation   Recommandation @relation(fields: [recommandationId], references: [id], onDelete: Cascade)
+  auteurId         String
+  ancienContenu    String
+  nouveauContenu   String
+  motif            String
+  creeLe           DateTime       @default(now())
+}
+
+// ---------- Base de connaissances ----------
+
+model SourceDocumentaire {
+  id       String         @id @default(cuid())
+  titre    String
+  url      String?
+  editeur  String?
+  autorisee Boolean       @default(true)
+  versions FicheVersion[]
+}
+
+model Fiche {
+  id        String         @id @default(cuid())
+  cultureId String
+  culture   Culture        @relation(fields: [cultureId], references: [id])
+  titre     String
+  statut    StatutFiche    @default(BROUILLON)
+  creeLe    DateTime       @default(now())
+  versions  FicheVersion[]
+
+  @@index([cultureId, statut])
+}
+
+model FicheVersion {
+  id          String                       @id @default(cuid())
+  ficheId     String
+  fiche       Fiche                        @relation(fields: [ficheId], references: [id], onDelete: Cascade)
+  version     Int
+  symptomes   String
+  causes      String
+  conduite    String // conduite à tenir, sans dosage
+  contenuWo   String? // traduction validée
+  sourceId    String
+  source      SourceDocumentaire           @relation(fields: [sourceId], references: [id])
+  relecteurId String?
+  publieeLe   DateTime?
+  // Dimension à ajuster selon le modèle d'embedding retenu
+  embedding   Unsupported("vector(1024)")?
+  creeLe      DateTime                     @default(now())
+
+  analyses AnalyseFiche[]
+
+  @@unique([ficheId, version])
+}
+
+// ---------- Échanges, signalements, notifications, journal ----------
+
+model Message {
+  id           String      @id @default(cuid())
+  dossierId    String
+  dossier      Dossier     @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  auteurId     String
+  auteur       Utilisateur @relation(fields: [auteurId], references: [id])
+  type         TypeMessage
+  contenu      String
+  photoAttendue Boolean    @default(false) // EF32
+  creeLe       DateTime    @default(now())
+
+  @@index([dossierId])
+}
+
+model Signalement {
+  id               String            @id @default(cuid())
+  auteurId         String
+  auteur           Utilisateur       @relation("SignalementsAuteur", fields: [auteurId], references: [id])
+  analyseId        String?
+  analyse          AnalyseIA?        @relation(fields: [analyseId], references: [id])
+  recommandationId String?
+  recommandation   Recommandation?   @relation(fields: [recommandationId], references: [id])
+  motif            String
+  statut           StatutSignalement @default(OUVERT)
+  traiteParId      String?
+  traiteLe         DateTime?
+  creeLe           DateTime          @default(now())
+}
+
+model Notification {
+  id            String      @id @default(cuid())
+  utilisateurId String
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  type          String
+  donnees       Json
+  lueLe         DateTime?
+  creeLe        DateTime    @default(now())
+
+  @@index([utilisateurId, lueLe])
+}
+
+// Journal des actions sensibles (§7.2)
+model JournalAudit {
+  id      String   @id @default(cuid())
+  acteurId String?
+  action  String
+  cible   String
+  details Json?
+  creeLe  DateTime @default(now())
+
+  @@index([cible])
+}
